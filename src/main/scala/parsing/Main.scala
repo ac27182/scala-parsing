@@ -1,23 +1,32 @@
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
+
 import cats.effect.IOApp
-import cats.implicits._
 import cats.effect.{ExitCode, IO}
-import cats.data.Validated
-import cats.data.ValidatedNel
+
+import cats.data._
+import cats.data.Validated._
 import cats.implicits._
-import Experiment3.FormValidator
+
+import cats._
+import cats.instances.future._
+import cats.syntax.either._
+import cats.syntax.cartesian._
+import cats.instances.list._
+import cats.syntax.traverse._
+import Experiment3.FormValidatorNec
+
 object Main extends IOApp {
 
-  val response: String = FormValidator.validateForm(
-    username  = "alexcameron6969",
-    password  = "password123",
-    firstName = "captain",
-    lastName  = "turtleneck",
-    age       = 69
-  ) match {
-    case Left(error) => error.errorMessage
-    case Right(data) => data.toString
-  }
+  val response =
+    FormValidatorNec
+      .validateForm(
+        username  = "alexcameron6969",
+        password  = "xxxxxxxxx",
+        firstName = "captain",
+        lastName  = "turtleneck",
+        age       = 69
+      )
+      .toEither
 
   def run(args: List[String]): IO[ExitCode] =
     IO {
@@ -89,43 +98,28 @@ object Experiment3 {
       "you must be aged 18 and not older than 75 to use our services."
   }
 
-  sealed trait FormValidator {
-    def validateUserName(userName: String): Either[DomainValidation, String] =
-      Either.cond(
-        userName.matches("^[a-zA-Z0-9]+$"),
-        userName,
-        UsernameHasSpecialCharacters
-      )
+  sealed trait FormValidatorNec {
 
-    def validatePassword(password: String): Either[DomainValidation, String] =
-      Either.cond(
-        password.matches(
-          "(?=^.{10,}$)((?=.*\\d)|(?=.*\\W+))(?![.\\n])(?=.*[A-Z])(?=.*[a-z]).*$"
-        ),
-        password,
-        PasswordDoesNotMeetCriteria
-      )
+    type ValidationResult[A] = ValidatedNec[DomainValidation, A]
 
-    def validateFirstName(firstName: String): Either[DomainValidation, String] =
-      Either.cond(
-        firstName.matches("^[a-zA-Z]+$"),
-        firstName,
-        FirstNameHasSpecialCharacters
-      )
+    private def validateUserName(userName: String): ValidationResult[String] =
+      if (userName.matches("^[a-zA-Z0-9]+$")) userName.validNec
+      else UsernameHasSpecialCharacters.invalidNec
 
-    def validateLastName(lastName: String): Either[DomainValidation, String] =
-      Either.cond(
-        lastName.matches("^[a-zA-Z]+$"),
-        lastName,
-        LastNameHasSpecialCharacters
-      )
+    private def validatePassword(password: String): ValidationResult[String] =
+      if (password.matches("^[a-zA-Z]+$")) password.validNec
+      else PasswordDoesNotMeetCriteria.invalidNec
 
-    def validateAge(age: Int): Either[DomainValidation, Int] =
-      Either.cond(
-        age >= 18 && age <= 75,
-        age,
-        AgeIsInvalid
-      )
+    private def validateFirstName(firstName: String): ValidationResult[String] =
+      if (firstName.matches("^[a-zA-Z]+$")) firstName.validNec
+      else FirstNameHasSpecialCharacters.invalidNec
+
+    private def validateLastName(lastName: String): ValidationResult[String] =
+      if (lastName.matches("^[a-zA-Z]+$")) lastName.validNec
+      else LastNameHasSpecialCharacters.invalidNec
+
+    private def validateAge(age: Int): ValidationResult[Int] =
+      if (age >= 18 && age <= 75) age.validNec else AgeIsInvalid.invalidNec
 
     def validateForm(
         username: String,
@@ -133,21 +127,17 @@ object Experiment3 {
         firstName: String,
         lastName: String,
         age: Int
-    ): Either[DomainValidation, RegistrationData] = {
-      for {
-        validatedUserName <- validateUserName(username)
-        validatedPassword <- validatePassword(password)
-        validatedFirstName <- validateFirstName(firstName)
-        validatedLastName <- validateLastName(lastName)
-        validatedAge <- validateAge(age)
-      } yield RegistrationData(
-        validatedUserName,
-        validatedPassword,
-        validatedFirstName,
-        validatedLastName,
-        validatedAge
-      )
+    ): ValidationResult[RegistrationData] = {
+      (
+        validateUserName(username),
+        validatePassword(password),
+        validateFirstName(firstName),
+        validateLastName(lastName),
+        validateAge(age)
+      ).mapN(RegistrationData)
     }
+
   }
-  object FormValidator extends FormValidator
+
+  object FormValidatorNec extends FormValidatorNec
 }

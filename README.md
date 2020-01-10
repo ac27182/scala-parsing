@@ -14,4 +14,6 @@
 - opetics?
 - elided = a sound or syllable being omitted when speaking
 - [+A], It declares the class to be covariant in its generic parameter
+- .kmz = keyhold markup language
+- validated non empty train
 - **_cats validated_**
