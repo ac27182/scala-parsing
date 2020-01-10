@@ -1,4 +1,5 @@
-import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
+import io.circe._, io.circe.generic.auto._, io.circe.parser._,
+io.circe.syntax._, io.circe.generic.semiauto._
 
 import cats.effect.IOApp
 import cats.effect.{ExitCode, IO}
@@ -30,7 +31,7 @@ object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     IO {
-      println(response)
+      println(Experiment5.x)
     } as ExitCode.Success
 }
 
@@ -63,12 +64,6 @@ object Experiment2 {
 // validation
 // using cats documentation
 object Experiment3 {
-  sealed abstract class Validated[+E, +A] extends Product with Serializable {
-    // implementation elided
-  }
-  final case class Valid[+A](a: A) extends Validated[Nothing, A]
-  final case class Invalid[+E](e: E) extends Validated[E, Nothing]
-
   final case class RegistrationData(
       username: String,
       password: String,
@@ -140,4 +135,78 @@ object Experiment3 {
   }
 
   object FormValidatorNec extends FormValidatorNec
+}
+
+//
+object Experiment4 {
+
+  case class Contact(phone: String, formattedPhone: String) {
+    require(phone.length == 11, "phone number must have a length of 11")
+  }
+  // object Contact {
+  //   def apply(phone: String, formattedPhone: String): Option[Contact] =
+  //     if (phone.length < 11) {
+  //       None
+  //     } else {
+  //       Some(new Contact(phone, formattedPhone))
+  //     }
+  // }
+  // val contact = Contact("86767", "cccc")
+
+  case class GeoLocation(lat: String, lng: String)
+  case class Address(
+      street: String,
+      number: String,
+      postalCode: String,
+      county: Option[String],
+      country: String
+  )
+  case class Listing(
+      id: Option[String],
+      contact: Contact,
+      address: Address,
+      location: GeoLocation
+  )
+  case class Property(listing: Listing)
+
+  // val contact = Contact("123456", "ssss")
+
+  // meaningful names
+  class Name private (val name: String) extends AnyVal
+  object Name {
+    def apply(name: String): Option[Name] =
+      if (name.nonEmpty) Some(new Name(name)) else None
+  }
+
+  // val name = Name("alex")
+
+}
+
+object Experiment5 {
+
+  sealed trait Weekday extends Product with Serializable
+  object Weekday {
+    case object Monday extends Weekday
+    case object Tuesday extends Weekday
+    case object Wednesday extends Weekday
+    case object Thursday extends Weekday
+    case object Friday extends Weekday
+    case object Saturday extends Weekday
+    case object Sunday extends Weekday
+
+    implicit val weekdayDecoder: Decoder[Weekday] = Decoder[String].emap {
+      case "monday"  => Right(Monday)
+      case "tuesday" => Right(Tuesday)
+      case e         => Left(e)
+    }
+  }
+
+  val json = """
+  {"days":["monday", "Tuesday"]}
+  """
+
+  case class TestJson(days: List[Weekday])
+
+  val x = decode[TestJson](json)
+
 }
