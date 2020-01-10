@@ -1,0 +1,16 @@
+[
+  {
+    "firstName": "alex",
+    "lastName": "cameron",
+    "username": "alexcameron6969",
+    "password": "ab9972975196e02hidugu",
+    "email": "a.cameron177@gmail.com",
+    "dob": "07/07/1997",
+    "address": {
+      "postcode": "bl52sw",
+      "addressLine1": "14 brambling drive",
+      "addressLine2": "westhoughton",
+      "addressLine3": "bolton"
+    }
+  }
+]

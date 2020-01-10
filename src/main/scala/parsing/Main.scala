@@ -21,11 +21,11 @@ object Main extends IOApp {
   val response =
     FormValidatorNec
       .validateForm(
-        username  = "alexcameron6969",
-        password  = "xxxxxxxxx",
+        username = "alexcameron6969",
+        password = "xxxxxxxxx",
         firstName = "captain",
-        lastName  = "turtleneck",
-        age       = 69
+        lastName = "turtleneck",
+        age = 69
       )
       .toEither
 
@@ -37,8 +37,8 @@ object Main extends IOApp {
 
 // ...basic experiment
 object Experiment1 {
-  sealed trait Weekday extends Product with Serializable
-  final case class Monday(day: String) extends Weekday
+  sealed trait Weekday                  extends Product with Serializable
+  final case class Monday(day: String)  extends Weekday
   final case class Tuesday(day: String) extends Weekday
 
   val json = """
@@ -52,7 +52,7 @@ object Experiment1 {
 // circe documentation
 object Experiment2 {
   sealed trait Foo
-  final case class Bar(xs: Vector[String]) extends Foo
+  final case class Bar(xs: Vector[String])        extends Foo
   final case class Qux(i: Int, d: Option[Double]) extends Foo
 
   // val foo: Foo = Qux(13, None)
@@ -186,27 +186,66 @@ object Experiment5 {
 
   sealed trait Weekday extends Product with Serializable
   object Weekday {
-    case object Monday extends Weekday
-    case object Tuesday extends Weekday
-    case object Wednesday extends Weekday
-    case object Thursday extends Weekday
-    case object Friday extends Weekday
-    case object Saturday extends Weekday
-    case object Sunday extends Weekday
+    final case object Monday    extends Weekday
+    final case object Tuesday   extends Weekday
+    final case object Wednesday extends Weekday
+    final case object Thursday  extends Weekday
+    final case object Friday    extends Weekday
+    final case object Saturday  extends Weekday
+    final case object Sunday    extends Weekday
 
     implicit val weekdayDecoder: Decoder[Weekday] = Decoder[String].emap {
       case "monday"  => Right(Monday)
       case "tuesday" => Right(Tuesday)
       case e         => Left(e)
     }
+
   }
 
   val json = """
-  {"days":["monday", "Tuesday"]}
+    [
+      {
+        "firstName": "alex",
+        "lastName": "cameron",
+        "username": "alexcameron6969",
+        "password": "ab9972975196e02hidugu",
+        "email": "a.cameron177@gmail.com",
+        "dob": "07/07/1997",
+        "address": {
+          "postcode": "bl52sw",
+          "addressLine1": "14 brambling drive",
+          "addressLine2": "westhoughton",
+          "addressLine3": "bolton"
+        }
+      }
+    ]
   """
 
-  case class TestJson(days: List[Weekday])
+  sealed trait UserDetails
+  final case class Name(name: String)         extends UserDetails
+  final case class Username(username: String) extends UserDetails
+  final case class Password(password: String) extends UserDetails
+  final case class Email(email: String)       extends UserDetails
 
-  val x = decode[TestJson](json)
+  sealed trait AddressDetails
+  final case class Postcode(postcode: String) extends AddressDetails
+  final case class AddressLine(s: String)     extends AddressDetails
+
+  final case class Address(
+      postcode: Postcode,
+      addressLine1: AddressLine,
+      addressLine2: AddressLine,
+      addressLine3: AddressLine
+  )
+
+  final case class User(
+      firstName: Name,
+      lastName: Name,
+      userName: Username,
+      password: Password,
+      email: Email,
+      dob: String,
+      address: Address
+  )
 
 }
