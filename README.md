@@ -12,4 +12,6 @@
 - AST = ABSTRACT SYNTAX TREE
 - lenses?
 - opetics?
+- elided = a sound or syllable being omitted when speaking
+- [+A], It declares the class to be covariant in its generic parameter
 - **_cats validated_**
