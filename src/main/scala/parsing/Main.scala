@@ -1,26 +1,40 @@
 import io.circe._, io.circe.generic.auto._, io.circe.parser._, io.circe.syntax._
-object Main extends App {
+import cats.effect.IOApp
+import cats.implicits._
+import cats.effect.{ExitCode, IO}
+import cats.data.Validated
+import cats.data.ValidatedNel
+object Main extends IOApp {
+  def run(args: List[String]): IO[ExitCode] =
+    IO(println("> App Running")) as ExitCode.Success
+}
+
+// ...basic experiment
+object Experiment1 {
+  sealed trait Weekday extends Product with Serializable
+  final case class Monday(day: String) extends Weekday
+  final case class Tuesday(day: String) extends Weekday
+
+  val json = """
+  {
+    "event1" : "monday"
+    "event2" : "wednesday"
+  }
+  """
+
+}
+// circe documentation
+object Experiment2 {
   sealed trait Foo
   final case class Bar(xs: Vector[String]) extends Foo
   final case class Qux(i: Int, d: Option[Double]) extends Foo
 
-  val foo: Foo = Qux(13, None)
-
-  // comes from io.circe
-  val json = foo.asJson.noSpaces
-  println("> app running")
-  println(json)
-  val decodedFoo = decode[Foo](json)
-  println(decodedFoo)
+  // val foo: Foo = Qux(13, None)
+  // val json = foo.asJson.noSpaces
+  // val decodedFoo = decode[Foo](json)
 
 }
 
-object Experiment1 {}
-
-// 1. come up with some funky json
-// 2. parse it
-// 3. come up with some funky data types
-// 4. parse some json
-// AST = ABSTRACT SYNTAX TREE
-// lenses?
-// opetics?
+// validation
+// using cats documentation
+object Experiment3 {}
