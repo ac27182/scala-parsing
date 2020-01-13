@@ -292,7 +292,7 @@ import eu.timepit.refined.collection.MaxSize
 
 // refinedments
 object Experiment6 {
-  type Name = Refined[String, NonEmpty]
+
   type TwitterHandle = String Refined AllOf[
     StartsWith[W.`"@"`.T] ::
       MaxSize[W.`16`.T] ::
@@ -301,19 +301,12 @@ object Experiment6 {
       HNil
   ]
 
-  // type TwitterHandle = String Refined And[NonEmpty, MaxSize[W.`256`.T]]
-
-  // type TwitterHandle = String Refined AllOf[NonEmpty :: HNil]
+  type Name = Refined[String, NonEmpty]
 
   final case class Developer(name: Name, twitterHandle: TwitterHandle)
 
-  val x: Developer = Developer("ss", "@hello")
-
+  val x: Developer                   = Developer("ss", "@hello")
   val y: Refined[Int, Positive]      = 1
   val z: Refined[String, MaxSize[5]] = "aaaaa"
-
-  // RefType.applyRef[TwitterHandle]("@hello")
-
-  // how many types does foo belong to? String, Any, AnyRef, "foo"
 
 }
