@@ -20,6 +20,10 @@
 - in a monad things are calculated sequentially
 - in an applicative functor the computation is not resetricted to be computed in any aprticular order
 - invariants = some conditions that must be true always whilst your program is running
+- refinedment types?
+- smart constructors?
+- Type Theory
+- shapeless witness macro
 
 ## challange
 

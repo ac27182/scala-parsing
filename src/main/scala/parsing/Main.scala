@@ -15,6 +15,15 @@ import cats.syntax.cartesian._
 import cats.instances.list._
 import cats.syntax.traverse._
 import Experiment3.FormValidatorNec
+import eu.timepit.refined.numeric.Interval
+import eu.timepit.refined.collection.Size
+import eu.timepit.refined.api.RefType
+import eu.timepit.refined.boolean.AllOf
+import shapeless.{HNil, ::}
+import eu.timepit.refined.boolean.Not
+import eu.timepit.refined.collection.Tail
+import eu.timepit.refined.boolean.Or
+import eu.timepit.refined.boolean.And
 
 object Main extends IOApp {
 
@@ -31,7 +40,7 @@ object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     IO {
-      println(Experiment5.x)
+      println(Experiment5.d)
     } as ExitCode.Success
 }
 
@@ -203,7 +212,7 @@ object Experiment5 {
   }
 
   val json = """
-    [
+    
       {
         "firstName": "alex",
         "lastName": "cameron",
@@ -218,16 +227,19 @@ object Experiment5 {
           "addressLine3": "bolton"
         }
       }
-    ]
+    
   """
 
-  sealed trait UserDetails
+  sealed trait UserDetails                    extends Product with Serializable
   final case class Name(name: String)         extends UserDetails
   final case class Username(username: String) extends UserDetails
   final case class Password(password: String) extends UserDetails
   final case class Email(email: String)       extends UserDetails
+  // object UserDetails {
+  //   implicit val weekdayDecoder: Decoder[UserDetails] = Decoder[String].
+  // }
 
-  sealed trait AddressDetails
+  sealed trait AddressDetails                 extends Product with Serializable
   final case class Postcode(postcode: String) extends AddressDetails
   final case class AddressLine(s: String)     extends AddressDetails
 
@@ -247,5 +259,61 @@ object Experiment5 {
       dob: String,
       address: Address
   )
+
+  val address = Address(
+    Postcode("aaaaaa"),
+    AddressLine("aaaaaa"),
+    AddressLine("aaaaaa"),
+    AddressLine("aaaaaa")
+  )
+
+  val user = User(
+    Name("aa"),
+    Name("aa"),
+    Username("alexcameron69"),
+    Password("aaaaaa"),
+    Email("aaaaaa"),
+    "aaaaa",
+    address
+  )
+  val d = decode[User](json)
+}
+
+import eu.timepit.refined.api.Refined
+import eu.timepit.refined._
+import eu.timepit.refined.collection.NonEmpty
+import eu.timepit.refined.auto._
+import eu.timepit.refined.types.numeric._
+import eu.timepit.refined.numeric.Positive
+import eu.timepit.refined.string.MatchesRegex
+import eu.timepit.refined.string.StartsWith
+import eu.timepit.refined.types.numeric._
+import eu.timepit.refined.collection.MaxSize
+
+// refinedments
+object Experiment6 {
+  type Name = Refined[String, NonEmpty]
+  type TwitterHandle = String Refined AllOf[
+    StartsWith[W.`"@"`.T] ::
+      MaxSize[W.`16`.T] ::
+      Not[MatchesRegex[W.`"(?i:.*twitter.*)"`.T]] ::
+      Not[MatchesRegex[W.`"(?i:.*admin.*)"`.T]] ::
+      HNil
+  ]
+
+  // type TwitterHandle = String Refined And[NonEmpty, MaxSize[W.`256`.T]]
+
+  // type TwitterHandle = String Refined AllOf[NonEmpty :: HNil]
+
+  final case class Developer(name: Name, twitterHandle: TwitterHandle)
+
+  val x: Developer = Developer("ss", "@hello")
+
+  val y: Refined[Int, Positive]      = 1
+  val z: Refined[String, MaxSize[5]] = "aaaaa"
+
+  // RefType.applyRef[TwitterHandle]("@hello")
+
+  // how many types does foo belong to? String, Any, AnyRef, "foo"
 
 }
