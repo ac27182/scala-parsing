@@ -6,19 +6,29 @@ import cats.implicits._
 import cats.effect.ExitCode
 import org.http4s._
 import org.http4s.dsl.io._
-import scala.concurrent.ExecutionContext.Implicits.global
 import cats.effect.ContextShift
 import cats.effect.Timer
+import cats.syntax._
+import scala.concurrent.ExecutionContext.Implicits.global
+// import scala.concurrent.ExecutionContext.global
+import scala.concurrent.Future
 
 import org.http4s.server.Router
 import org.http4s.server.blaze._
 import org.http4s.implicits._
 
+import java.nio.charset.StandardCharsets.UTF_8
+
 object Http4s extends IOApp {
   import Experiment2._
 
+  def twice: Int => Int =
+    n => n * 2
+  def twice2(n: Int): Int =
+    n * 2
+
   def run(args: List[String]): IO[ExitCode] =
-    headersIo1 as ExitCode.Success
+    responseIo2 as ExitCode.Success
 }
 
 object Experiment1 {
@@ -75,7 +85,8 @@ object Experiment1 {
 
 object Experiment2 {
 
-  implicit val timer: Timer[IO] = IO.timer(global)
+  implicit val cs: ContextShift[IO] = IO.contextShift(global)
+  implicit val timer: Timer[IO]     = IO.timer(global)
 
   val service   = HttpRoutes.of[IO] { case _ => IO(Response(Status.Ok)) }
   val getRoot   = Request[IO](Method.GET, uri"/")
@@ -104,6 +115,13 @@ object Experiment2 {
     )
   )
 
+  val responseIo  = IO(println(Ok("Received request.").unsafeRunSync))
+  val responseIo1 = IO(println(Ok("binary".getBytes(UTF_8)).unsafeRunSync))
+  val responseIo2 = Ok(IO.fromFuture((IO(Future(".....")))))
+
 }
 
 // khleisli category
+// the khleisli enables the composition of functions that return a monadic value
+
+// lenses
