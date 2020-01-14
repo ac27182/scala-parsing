@@ -27,24 +27,10 @@ import eu.timepit.refined.boolean.And
 
 object Main extends IOApp {
 
-  val response =
-    FormValidatorNec
-      .validateForm(
-        username = "alexcameron6969",
-        password = "xxxxxxxxx",
-        firstName = "captain",
-        lastName = "turtleneck",
-        age = 69
-      )
-      .toEither
-
   def run(args: List[String]): IO[ExitCode] =
-    IO {
-      println(Experiment5.d)
-    } as ExitCode.Success
+    IO(println("> operational")) as ExitCode.Success
 }
 
-// ...basic experiment
 object Experiment1 {
   sealed trait Weekday                  extends Product with Serializable
   final case class Monday(day: String)  extends Weekday
@@ -290,7 +276,7 @@ import eu.timepit.refined.string.StartsWith
 import eu.timepit.refined.types.numeric._
 import eu.timepit.refined.collection.MaxSize
 
-// refinedments
+// refinements
 object Experiment6 {
 
   type TwitterHandle = String Refined AllOf[
@@ -309,4 +295,94 @@ object Experiment6 {
   val y: Refined[Int, Positive]      = 1
   val z: Refined[String, MaxSize[5]] = "aaaaa"
 
+}
+
+object Experiment7 {
+  final case class Rules(attribute: Attribute)
+
+  sealed trait Attribute
+  final case class AttributeList(values: List[String]) extends Attribute
+  final case class AttributeString(values: String)     extends Attribute
+
+  object Rules {
+    implicit val encodeAttributeList: ObjectEncoder[AttributeList] =
+      deriveEncoder
+    implicit val decodeAttributeList: Decoder[AttributeList] = deriveDecoder
+
+    implicit val encodeAttributeString: ObjectEncoder[AttributeString] =
+      deriveEncoder
+    implicit val decodeAttributeString: Decoder[AttributeString] = deriveDecoder
+
+    implicit val encodeAttribute: Encoder[Attribute] = ObjectEncoder.instance {
+      case l @ AttributeList(_) =>
+        l.asJsonObject.add("type", "attributeList".asJson)
+      case s @ AttributeString(_) =>
+        s.asJsonObject.add("type", "attributeString".asJson)
+    }
+
+    implicit val decodeAttribute: Decoder[Attribute] = for {
+      visitorType <- Decoder[String].prepare(_.downField("type"))
+      value <- visitorType match {
+        case "attributeList"   => Decoder[AttributeList]
+        case "attributeString" => Decoder[AttributeString]
+        case other             => Decoder.failedWithMessage(s"invalid type: $other")
+      }
+    } yield value
+
+  }
+
+  val json1 = """
+    {
+      "attribute" : "abcdefg"
+    }
+  """
+}
+
+object Experiment8 {
+  sealed trait TestEvent
+  case class MyEvent1(field: String) extends TestEvent
+  case class MyEvent2(field: Int)    extends TestEvent
+
+  val json1 = """
+    {
+      "type" : "e1",
+      "field" : "xyz"
+    }
+  """
+
+  val json2 = """
+    {
+      "type" : "e2",
+      "field" : 123
+    }
+  """
+
+  val e1 = MyEvent1("xyz")
+  val e2 = MyEvent2(123)
+
+  implicit val decodeTestEvent: Decoder[TestEvent] = for {
+    eventType <- Decoder[String].prepare(_.downField("type"))
+    value <- eventType match {
+      case "e1"  => Decoder[MyEvent1]
+      case "e2"  => Decoder[MyEvent2]
+      case other => Decoder.failedWithMessage(s"invalid type: $other")
+    }
+  } yield value
+
+  implicit val decodeMyEvent1: Decoder[MyEvent1] = deriveDecoder
+  implicit val decodeMyEvent2: Decoder[MyEvent2] = deriveDecoder
+
+  implicit val encodeMyEvent1: Encoder[MyEvent1] =
+    _.asJsonObject.add("type", "e1".asJson).asJson
+
+  implicit val encodeMyEvent2: Encoder[MyEvent2] =
+    _.asJsonObject.add("type", "e2".asJson).asJson
+
+  implicit val encodeTestEvent: Encoder[TestEvent] = ObjectEncoder.instance {
+    case e1 @ MyEvent1(_) => {
+      println("xxx")
+      e1.asJsonObject.add("type", "e1".asJson)
+    }
+    case e2 @ MyEvent2(_) => e2.asJsonObject.add("type", "e2".asJson)
+  }
 }
