@@ -30,3 +30,5 @@
 1. json -> class || log error in console as a json string
 
 - how to we take a bit chonky piece of JSON and decoed it to types
+
+-

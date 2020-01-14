@@ -11,7 +11,7 @@ import cats.implicits._
 import cats._
 import cats.instances.future._
 import cats.syntax.either._
-import cats.syntax.cartesian._
+// import cats.syntax.cartesian._
 import cats.instances.list._
 import cats.syntax.traverse._
 import Experiment3.FormValidatorNec
