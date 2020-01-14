@@ -279,14 +279,16 @@ import eu.timepit.refined.collection.MaxSize
 // refinements
 object Experiment6 {
 
-  type TwitterHandle = String Refined AllOf[
-    StartsWith[W.`"@"`.T] ::
-      MaxSize[W.`16`.T] ::
-      Not[MatchesRegex[W.`"(?i:.*twitter.*)"`.T]] ::
-      Not[MatchesRegex[W.`"(?i:.*admin.*)"`.T]] ::
-      HNil
-  ]
+  type TwitterHandle =
+    String Refined AllOf[
+      StartsWith[W.`"@"`.T] ::
+        MaxSize[W.`16`.T] ::
+        Not[MatchesRegex[W.`"(?i:.*twitter.*)"`.T]] ::
+        Not[MatchesRegex[W.`"(?i:.*admin.*)"`.T]] ::
+        HNil
+    ]
 
+  //** xyz */
   type Name = Refined[String, NonEmpty]
 
   final case class Developer(name: Name, twitterHandle: TwitterHandle)
