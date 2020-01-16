@@ -14,11 +14,72 @@ import fs2.compress._
 import SampleData.data
 import cats.effect.IO
 import fs2.Fallible
-// import fs2.g
 object Compression extends App {
+  val s0 = Stream.empty
+  val s1 = Stream.emit(1)
+  val s2 = Stream(1, 2, 3, 4, 6, "a")
+  val s3 = Stream.emits(List(1, 2, 3))
+  val s4 = Stream.range(0, 100).intersperse(1).toList
 
-  val bytes = data.getBytes
+  // effects
+  val eff = Stream.eval(IO {
+    println("doing an IO....")
+    1 + 1
+  })
 
+  val ra = eff.compile.toVector
+  val rb = eff.compile.drain
+  val rc = eff.compile.fold(0)(_ + _)
+  // ra.unsafeRunSync
+  // rb.unsafeRunSync
+  // rc.unsafeRunSync
+
+  // chonks
+  val s1c =
+    Stream.chunk(Chunk.doubles(Array(1.0, 2.0, 3.0)))
+
+  s1c.mapChunks { ds =>
+    val doubles = ds.toDoubles
+    println(doubles)
+    doubles
+  }
+
+  // basic stream operations
+  val appendEx1 = Stream(1, 2, 3) ++ Stream.emit(42)
+  val appendEx2 = Stream(1, 2, 3) ++ Stream.eval(IO.pure(4))
+  println(appendEx1.toVector)
+  println(appendEx2.compile.toVector.unsafeRunSync)
+  println(appendEx1.intersperse(1).toVector)
+  println(appendEx1.flatMap(i => Stream.emits(List(i, i))).toVector)
+
+  // error handling
+  val err  = Stream.raiseError[IO](new Exception("oopsie 1"))
+  val err2 = Stream(1, 2, 3) ++ (throw new Exception("oopsie 2"))
+  val err3 = Stream.eval(IO(throw new Exception("oopsie 3")))
+
+  try err.compile.toList.unsafeRunSync
+  catch {
+    case e: Exception => println(e)
+  }
+
+  try err2.toList
+  catch { case e: Exception => println(e) }
+
+  try err3.compile.drain.unsafeRunSync
+  catch { case e: Exception => println(e) }
+
+  err
+    .handleErrorWith { e =>
+      Stream.emit(e.getMessage)
+    }
+    .compile
+    .toList
+    .unsafeRunSync
+
+}
+
+object Compression1 {
+  val bytes     = data.getBytes
   val newString = new String(bytes, StandardCharsets.UTF_8)
   val s0        = Stream(data)
 
@@ -49,18 +110,40 @@ object Compression extends App {
       case Right(value) => Some(value.toArray.length)
     }
 
-  // val decompress =
-  //   Stream
-  //     .chunk(Chunk.bytes(compressed))
-  //     .through(gunzip(compressed.length))
-
   println(data)
   println(bytes.length)
   println(compressed0.length)
   println(compressed1.length)
   println(decompressed1 getOrElse None)
-  // println(compress.mkString)
+
 }
+object Compression2 {
+  def compress: Array[Byte] => Array[Byte] =
+    b =>
+      Stream
+        .chunk(Chunk.bytes(b))
+        .through(deflate(level = 9, nowrap = true))
+        .toVector
+        .toArray
+
+  def decompress: Array[Byte] => Either[Throwable, Vector[Byte]] =
+    b =>
+      Stream
+        .chunk(Chunk.bytes(b))
+        .covary[Fallible]
+        .through(inflate(nowrap = true))
+        .toVector
+
+  val compressedData = compress(data.getBytes)
+  val decompressedData = decompress(compressedData) match {
+    case Right(vector) => vector.toArray.length
+    case Left(error)   => error
+  }
+  println(compressedData.length)
+  println(decompressedData)
+}
+
+object Compression3 {}
 
 object SampleData {
   val data =
