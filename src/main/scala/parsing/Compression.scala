@@ -1,19 +1,20 @@
 package parsing
-import fs2.Stream._
-import fs2.Stream
-import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 import java.util.zip.{GZIPOutputStream, GZIPInputStream}
-
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream}
 import scala.util.Try
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+
+import fs2.Stream
+import fs2.Stream._
 import cats.implicits._
 import fs2.text
 import fs2.Chunk
 import fs2.compress._
-import SampleData.data
 import cats.effect.IO
 import fs2.Fallible
+
+import SampleData.data
 object Compression extends App {
   val s0 = Stream.empty
   val s1 = Stream.emit(1)

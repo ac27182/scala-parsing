@@ -3,6 +3,7 @@ resolvers += Resolver.sonatypeRepo("snapshots")
 
 val circeVersion  = "0.12.0"
 val http4sVersion = "0.21.0-SNAPSHOT"
+val fs2Version    = "2.1.0"
 
 val miscellaneous = Seq(
   "io.taig"           %% "circe-validation" % "0.2.0",
@@ -15,7 +16,8 @@ val circe = Seq(
   "io.circe" %% "circe-core",
   "io.circe" %% "circe-generic",
   "io.circe" %% "circe-parser",
-  "io.circe" %% "circe-optics"
+  "io.circe" %% "circe-optics",
+  "io.circe" %% "circe-fs2"
 ).map(_ % circeVersion)
 
 val http4s = Seq(
@@ -25,7 +27,6 @@ val http4s = Seq(
   "org.http4s" %% "http4s-dsl"
 ).map(_ % http4sVersion)
 
-val fs2Version = "2.1.0"
 val fs2 = Seq(
   "co.fs2" %% "fs2-core",
   "co.fs2" %% "fs2-io"
