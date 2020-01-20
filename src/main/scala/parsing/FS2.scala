@@ -1,7 +1,5 @@
 package parsing
 import fs2._
-import io.circe._, io.circe.generic.auto._, io.circe.parser._,
-io.circe.syntax._, io.circe.generic.semiauto._
 import fs2.io.file.readAll
 import fs2.Stream._
 
